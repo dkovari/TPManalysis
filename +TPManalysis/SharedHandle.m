@@ -1,0 +1,3 @@
+classdef SharedHandle < dynamicprops
+    
+end
