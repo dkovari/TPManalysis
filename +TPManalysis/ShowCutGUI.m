@@ -119,9 +119,13 @@ uicontrol('Parent',hPnl,...
         
         title(hAx,'Draw rectangle, press return to accept, Esc. to cancel');
         
-        hRect = TPManalysis.imrect2('Parent',hAx,'Color',[1,0,0],'LimMode','manual');
-        %disp(hRect.Position)
-        range = [hRect.Position(1),hRect.Position(1)+hRect.Position(3)];
+        hRect = uiextras.imrect2('Parent',hAx,'Color',[1,0,0],'LimMode','manual');
+        
+        if isempty(hRect)
+            range = [];
+        else
+            range = [hRect.Position(1),hRect.Position(1)+hRect.Position(3)];
+        end
         
         function FigKey(~,evt)
             switch evt.Key

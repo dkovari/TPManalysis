@@ -60,6 +60,18 @@ hWait = waitbar(0,'Loading data, please wait...');
 TPMdata.TimeDateNum = [];
 TPMdata.Bead(num_tracks) = struct('Xraw',[],'Yraw',[]);
 
+%% preallocate data
+N_BYTES = 3*8*num_tracks+8; %number of bytes per record 8 bytes per coord (x,y,z) + 8bytes for timestamp
+N_RECORDS = fsize/N_BYTES;
+for n=1:num_tracks
+    TPMdata.Bead(num_tracks).Xraw = NaN(N_RECORDS,1);
+    TPMdata.Bead(num_tracks).Yraw = NaN(N_RECORDS,1);
+end
+TPMdata.TimeDateNum = NaN(N_RECORDS,1);
+
+
+%% load data from file
+recID = 1;
 while ~feof(fid)
      t = fread(fid,1,'double');
      if isempty(t)
@@ -75,20 +87,30 @@ while ~feof(fid)
         break;
     end
     
-    TPMdata.TimeDateNum = [TPMdata.TimeDateNum;t];
+    %copy data into TPMdata struct
+    TPMdata.TimeDateNum(recID,1) = t;
     for n=1:num_tracks
-        TPMdata.Bead(n).Xraw = [TPMdata.Bead(n).Xraw;x(n)*PxScale(1)];
-        TPMdata.Bead(n).Yraw = [TPMdata.Bead(n).Yraw;y(n)*PxScale(2)];
+        TPMdata.Bead(n).Xraw(recID,1) = x(n)*PxScale(1);
+        TPMdata.Bead(n).Yraw(recID,1) = y(n)*PxScale(2);
     end
     
+    recID = recID+1;
     waitbar(ftell(fid)/fsize,hWait);
 end
 close(hWait);
 
+%remove extras records
+rmInd = find(isnan(TPMdata.TimeDateNum));
+TPMdata.TimeDateNum(rmInd) = [];
+for n=1:num_tracks
+    TPMdata.Bead(n).Xraw(rmInd) = [];
+    TPMdata.Bead(n).Yraw(rmInd) = [];
+end
+
 TPMdata.TimeSec = (TPMdata.TimeDateNum - TPMdata.TimeDateNum(1))*(24*3600);
 
 if nargout <1
-    putvar(TPMdata);
+    uiextras.uiputvar(TPMdata);
     clear TPMdata;
 end
 

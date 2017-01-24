@@ -97,7 +97,7 @@ basevars = evalin('base','who');
 % loop over the variables supplied
 for i = 1:nvar
   % what was this variable called in the caller workspace?
-  varname = inputname(i);
+  varname = inputname(i)
   vari = varargin{i};
   
   if ~isempty(varname)

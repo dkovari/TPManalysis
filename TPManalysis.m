@@ -21,11 +21,16 @@ import TPManalysis.*
 %% Select data with gui if needed
 if nargin<1
     disp('Select TPM data variable');
-    TPMdata = uigetvar('struct');
+    [TPMdata,varname] = uigetvar('struct');
     if isempty(TPMdata)
         return;
     end
+    
+    fprintf('Editing: %s\n',varname);
+else
+    varname = 'TPMdata';
 end
+
 
 if nargout>=1
     outflag = true;
@@ -179,8 +184,8 @@ UIdata.hTbl = hTbl;
         delete(hF);
         delete(hFig);
         if ~outflag
-            TPMdata = UIdata.data;
-            putvar(TPMdata);
+            %TPMdata = UIdata.data;
+            uiextras.uiputvar(UIdata.data,varname);
         end
     end
 
