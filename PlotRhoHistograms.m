@@ -68,6 +68,11 @@ padT = TPMdata.TimeSec;
 padT(end+1:end+rmsWIND-mod(numel(padT),rmsWIND)) = NaN;
 mean_T = nanmean(reshape(padT,rmsWIND,[]),1)';
 
+%container for agregated data
+rho_all = [];
+rho2_all = [];
+mean_rho2_all = [];
+
 
 for n = BeadID
     %% Data to include
@@ -134,9 +139,62 @@ for n = BeadID
         save(fullfile(PathName,DataName),'rho','rho2','mean_rho2','movavgX','movavgY');
         
     end
-    
-    
+
+        
+    rho_all = [rho_all;rho];
+    rho2_all = [rho2_all;rho2];
+    mean_rho2_all = [mean_rho2_all;mean_rho2];
 end
+
+%% Plot all
+low_rho2 = (rmsWIND-1)*mean_rho2_all/chi2inv(.975,rmsWIND-1);
+up_rho2 = (rmsWIND-1)*mean_rho2_all/chi2inv(.025,rmsWIND-1);
+
+%% Limits
+RhoLim = [0,max(up_rho2(:))];
+
+%% histogram for rho^2
+hRho2 = figure('Name','All Rho^2<4s>','NumberTitle','off');
+
+histogram(mean_rho2_all,linspace(RhoLim(1),RhoLim(2),100),'EdgeColor','none');
+ylabel('Count');
+xlabel('<\rho^2>_{4s} [nm^2]');
+%xlabel('Effective Length (w/ L_p=50nm) [basepair]');
+
+set(gca,'fontsize',12,...
+    'XMinorTick','on',...
+    'box','off');
+
+ax1 = gca;
+ax2=axes('position',ax1.Position,...
+    'XaxisLocation','top',...
+    'Yaxislocation','right',...
+    'color','none',...
+    'Ycolor','none');
+xlim(ax2,RhoLim/2/50/.34);
+xlabel(ax2,'Effective Length (w/ L_p=50nm) [bp]');
+
+%% histogram for rho
+hRho = figure('Name','All Rho','NumberTitle','off');
+histogram(rho_all,'EdgeColor','none');
+xlabel('Projected Radius \rho [nm]');
+ylabel('Counts');
+title('All Rho');
+
+
+%% save data
+if savedata
+
+    RhoFigName = sprintf('%s_Rho_All.fig',FileBase);
+    Rho2FigName = sprintf('%s_Rho2_All.fig',FileBase);
+    DataName = sprintf('%s_RhoData_All.mat',FileBase);
+
+    saveas(hRho,fullfile(PathName,RhoFigName));
+    saveas(hRho2,fullfile(PathName,Rho2FigName));
+    save(fullfile(PathName,DataName),'rho_all','rho2_all','mean_rho2_all','BeadID');
+
+end
+
 
 
 
